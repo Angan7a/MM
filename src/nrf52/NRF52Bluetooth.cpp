@@ -35,7 +35,7 @@ class BluetoothPhoneAPI : public PhoneAPI
     }
 };
 
-static BluetoothPhoneAPI *bluetoothPhoneAPI;
+PhoneAPI *bluetoothPhoneAPI;
 
 void connect_callback(uint16_t conn_handle)
 {

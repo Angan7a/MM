@@ -1,4 +1,5 @@
 #pragma once
+#include "../mesh/PhoneAPI.h"
 
 class NRF52Bluetooth
 {
@@ -6,3 +7,4 @@ class NRF52Bluetooth
     void setup();
 };
 
+extern PhoneAPI *bluetoothPhoneAPI;
