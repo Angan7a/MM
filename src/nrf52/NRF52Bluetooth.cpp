@@ -21,19 +21,13 @@ static BLEDfu bledfu; // DFU software update helper service
 static uint8_t fromRadioBytes[FromRadio_size];
 static uint8_t toRadioBytes[ToRadio_size];
 
-class BluetoothPhoneAPI : public PhoneAPI
-{
-    /**
-     * Subclasses can use this as a hook to provide custom notifications for their transport (i.e. bluetooth notifies)
-     */
-    virtual void onNowHasData(uint32_t fromRadioNum)
+void BluetoothPhoneAPI::onNowHasData(uint32_t fromRadioNum)
     {
         PhoneAPI::onNowHasData(fromRadioNum);
 
         DEBUG_MSG("BLE notify fromNum\n");
         fromNum.notify32(fromRadioNum);
     }
-};
 
 PhoneAPI *bluetoothPhoneAPI;
 
