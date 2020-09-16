@@ -119,6 +119,7 @@ static void advertise();
  *                                  of the return code is specific to the
  *                                  particular GAP event being signalled.
  */
+
 static int gap_event(struct ble_gap_event *event, void *arg)
 {
     struct ble_gap_conn_desc desc;
@@ -126,6 +127,7 @@ static int gap_event(struct ble_gap_event *event, void *arg)
 
     switch (event->type) {
     case BLE_GAP_EVENT_CONNECT:
+	bluetoothPhoneAPI->stateBT = CONNECT;
         /* A new connection was established or a connection attempt failed. */
         DEBUG_MSG("connection %s; status=%d ", event->connect.status == 0 ? "established" : "failed", event->connect.status);
         if (event->connect.status == 0) {
@@ -143,6 +145,7 @@ static int gap_event(struct ble_gap_event *event, void *arg)
         return 0;
 
     case BLE_GAP_EVENT_DISCONNECT:
+	bluetoothPhoneAPI->stateBT = DISCONNECT;
         DEBUG_MSG("disconnect; reason=%d ", event->disconnect.reason);
         print_conn_desc(&event->disconnect.conn);
         DEBUG_MSG("\n");
@@ -154,6 +157,7 @@ static int gap_event(struct ble_gap_event *event, void *arg)
         return 0;
 
     case BLE_GAP_EVENT_CONN_UPDATE:
+	bluetoothPhoneAPI->stateBT = CONN_UPDATE;
         /* The central has updated the connection parameters. */
         DEBUG_MSG("connection updated; status=%d ", event->conn_update.status);
         rc = ble_gap_conn_find(event->conn_update.conn_handle, &desc);
@@ -163,11 +167,13 @@ static int gap_event(struct ble_gap_event *event, void *arg)
         return 0;
 
     case BLE_GAP_EVENT_ADV_COMPLETE:
+	bluetoothPhoneAPI->stateBT = ADV_COMPLETE;
         DEBUG_MSG("advertise complete; reason=%d", event->adv_complete.reason);
         advertise();
         return 0;
 
     case BLE_GAP_EVENT_ENC_CHANGE:
+	bluetoothPhoneAPI->stateBT = ENC_CHANGE;
         /* Encryption has been enabled or disabled for this connection. */
         DEBUG_MSG("encryption change event; status=%d ", event->enc_change.status);
         rc = ble_gap_conn_find(event->enc_change.conn_handle, &desc);
@@ -180,6 +186,7 @@ static int gap_event(struct ble_gap_event *event, void *arg)
         return 0;
 
     case BLE_GAP_EVENT_SUBSCRIBE:
+	bluetoothPhoneAPI->stateBT = SUBSCRIBE;
         DEBUG_MSG("subscribe event; conn_handle=%d attr_handle=%d "
                   "reason=%d prevn=%d curn=%d previ=%d curi=%d\n",
                   event->subscribe.conn_handle, event->subscribe.attr_handle, event->subscribe.reason,
@@ -188,11 +195,13 @@ static int gap_event(struct ble_gap_event *event, void *arg)
         return 0;
 
     case BLE_GAP_EVENT_MTU:
+	bluetoothPhoneAPI->stateBT = MTU;
         DEBUG_MSG("mtu update event; conn_handle=%d cid=%d mtu=%d\n", event->mtu.conn_handle, event->mtu.channel_id,
                   event->mtu.value);
         return 0;
 
     case BLE_GAP_EVENT_REPEAT_PAIRING:
+	bluetoothPhoneAPI->stateBT = REPEAT_PAIRING;
         DEBUG_MSG("repeat pairing event; conn_handle=%d "
                   "cur_key_sz=%d cur_auth=%d cur_sc=%d "
                   "new_key_sz=%d new_auth=%d new_sc=%d "
@@ -216,6 +225,7 @@ static int gap_event(struct ble_gap_event *event, void *arg)
         return BLE_GAP_REPEAT_PAIRING_RETRY;
 
     case BLE_GAP_EVENT_PASSKEY_ACTION:
+	bluetoothPhoneAPI->stateBT = PASSKEY_ACTION;
         DEBUG_MSG("PASSKEY_ACTION_EVENT started \n");
         struct ble_sm_io pkey = {0};
 
@@ -542,9 +552,11 @@ void setBluetoothEnable(bool on)
             Serial.printf("Pre BT: %u heap size\n", ESP.getFreeHeap());
             // ESP_ERROR_CHECK( heap_trace_start(HEAP_TRACE_LEAKS) );
             reinitBluetooth();
+	    bluetoothPhoneAPI->stateBT = ON;
             initWifi();
         } else {
             // We have to totally teardown our bluetooth objects to prevent leaks
+	    bluetoothPhoneAPI->stateBT = OFF;
             deinitBLE();
             WiFi.mode(WIFI_MODE_NULL); // shutdown wifi
             Serial.printf("Shutdown BT: %u heap size\n", ESP.getFreeHeap());
@@ -599,3 +611,4 @@ BLEServer *serve = initBLE(, , getDeviceName(), HW_VENDOR, optstr(APP_VERSION),
                            optstr(HW_VERSION)); // FIXME, use a real name based on the macaddr
 
 #endif
+

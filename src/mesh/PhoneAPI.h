@@ -17,6 +17,23 @@
  * Eventually there should be once instance of this class for each live connection (because it has a bit of state
  * for that connection)
  */
+
+enum StateBT 
+{
+	CONNECT,
+	DISCONNECT,
+	CONN_UPDATE,
+	ADV_COMPLETE,
+	ENC_CHANGE,
+	SUBSCRIBE,
+	MTU,
+	REPEAT_PAIRING,
+	PASSKEY_ACTION,
+	ON,
+	OFF,
+	UNKNOWN
+};
+
 class PhoneAPI
     : public Observer<uint32_t> // FIXME, we shouldn't be inheriting from Observer, instead use CallbackObserver as a member
 {
@@ -85,6 +102,8 @@ class PhoneAPI
 
     void handleSetOwner(const User &o);
     void handleSetRadio(const RadioConfig &r);
+
+    StateBT stateBT = UNKNOWN;
 
   protected:
     /// Our fromradio packet while it is being assembled
